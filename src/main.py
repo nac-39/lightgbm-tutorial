@@ -40,6 +40,14 @@ def main():
 
     param = {
         "objective": "binary",
+        "metric": "binary_error",
+        "boosting_type": "gbdt",
+        "num_leaves": 31,
+        "learning_rate": 0.05,
+        "feature_fraction": 0.9,
+        "bagging_fraction": 0.8,
+        "bagging_freq": 5,
+        "verbose": 0,
     }
     print(train)
     gbm = lgb.train(param, train, num_boost_round=100)
@@ -51,7 +59,7 @@ def main():
     y_pred["PassengerId"] = test.data["PassengerId"]
     y_pred = y_pred[["PassengerId", "Survived"]]
     y_pred.to_csv("submission.csv", index=False)
-    
+
     # 予測精度を表示
     print("accuracy: ", (y_pred["Survived"] == sample_submission["Survived"]).mean())
 
