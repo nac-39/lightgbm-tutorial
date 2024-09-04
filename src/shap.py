@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import lightgbm as lgb
 import optuna
-from sklearn.model_selection import KFold
 
 
 def unzip(path: str, dest: str):
@@ -25,10 +24,10 @@ def objective(trial):
     """optunaのobjective関数
 
     Args:
-        trial (optuna.trial.Trial): パラメータ試行のためのオブジェクト
+        trial (??): パラメータ？
 
     Returns:
-        float: 精度
+        float?: 精度
     """
     param = {
         "boosting_type": "gbdt",
@@ -46,48 +45,26 @@ def objective(trial):
         "random_seed": 42,
         "verbose": -1,
     }
-
-    # データ読み込み
-    train_data = pd.read_csv('data/train.csv')
-
-    # 不要な列は削除しない（後で使うため）
+    train_data = pd.read_csv('data/train.csv')  # ここでtrain_dataを定義
+    train_data.drop(["Name", "Ticket", "Cabin", "Survived"], axis=1),
+    sample_submission = pd.read_csv('data/gender_submission.csv')
+    test_data = pd.read_csv('data/test.csv')
     train_data = preprocess_data(train_data)
-    
-    kf = KFold(n_splits=5, shuffle=True, random_state=42)
-    accuracy_list = []
+    test_data = preprocess_data(test_data)
+    train = lgb.Dataset(
+        train_data.drop(["Name", "Ticket", "Cabin", "Survived"], axis=1),
+        label=train_data["Survived"],
+    )
+    validation = lgb.Dataset(
+        test_data.drop(["Name", "Ticket", "Cabin"], axis=1),
+        label=sample_submission["Survived"],
+        reference=train
+    )
 
-    for train_index, val_index in kf.split(train_data):
-        train_data_fold = train_data.iloc[train_index]
-        val_data_fold = train_data.iloc[val_index]
-
-        # 前処理
-        train_data_fold = preprocess_data(train_data_fold)
-        val_data_fold = preprocess_data(val_data_fold)
-
-        # 不要な列を削除（学習データと検証データで同じ処理を行う）
-        features = ["Pclass", "Sex", "Age", "SibSp", "Parch", "Fare", "Embarked"]  # 例：残すべき特徴量
-        train_X = train_data_fold[features]
-        train_y = train_data_fold["Survived"]
-        val_X = val_data_fold[features]
-        val_y = val_data_fold["Survived"]
-
-        # LightGBMのデータセット作成
-        train_fold = lgb.Dataset(train_X, label=train_y)
-        val_fold = lgb.Dataset(val_X, label=val_y, reference=train_fold)
-
-        # モデル訓練
-        gbm = lgb.train(param, train_fold, valid_sets=[val_fold])
-
-        # 予測
-        preds = gbm.predict(val_X, num_iteration=gbm.best_iteration)
-        pred_labels = np.rint(preds)
-
-        # 精度計算
-        accuracy = (pred_labels == val_y).mean()
-        accuracy_list.append(accuracy)
-        
-    # 平均精度を返す
-    accuracy = np.mean(accuracy_list)
+    gbm = lgb.train(param, train, valid_sets=[validation])
+    preds = gbm.predict(test_data.drop(["Name", "Ticket", "Cabin"], axis=1))
+    pred_labels = np.rint(preds)
+    accuracy = (pred_labels == sample_submission["Survived"]).mean()
     return accuracy
 
 
@@ -99,8 +76,6 @@ def main():
     train_data = load_data("data/train.csv")
 
     # Sex, Embarkedを数字に変換する
-    train_data = train_data.sample(frac=0.8, random_state=42)
-
     train_data = preprocess_data(train_data)
     test_data = preprocess_data(test_data)
 

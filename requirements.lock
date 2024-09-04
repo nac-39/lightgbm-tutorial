@@ -38,6 +38,8 @@ ipython==8.27.0
     # via ipykernel
 jedi==0.19.1
     # via ipython
+joblib==1.4.2
+    # via scikit-learn
 jupyter-client==8.6.2
     # via ipykernel
 jupyter-core==5.7.2
@@ -65,6 +67,7 @@ numpy==2.1.0
     # via matplotlib
     # via optuna
     # via pandas
+    # via scikit-learn
     # via scipy
 optuna==3.6.1
     # via lightgbm-tutorial
@@ -105,8 +108,11 @@ pyyaml==6.0.2
 pyzmq==26.2.0
     # via ipykernel
     # via jupyter-client
+scikit-learn==1.5.1
+    # via lightgbm-tutorial
 scipy==1.14.1
     # via lightgbm
+    # via scikit-learn
 six==1.16.0
     # via asttokens
     # via python-dateutil
@@ -115,6 +121,8 @@ sqlalchemy==2.0.32
     # via optuna
 stack-data==0.6.3
     # via ipython
+threadpoolctl==3.5.0
+    # via scikit-learn
 tornado==6.4.1
     # via ipykernel
     # via jupyter-client
